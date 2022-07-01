@@ -1,6 +1,7 @@
+-- Copy from https://github.com/ntoff/obs_scripts/blob/master/streamcmd.lua
+
 obs         = obslua
 start_script_name = ""
-end_script_name = ""
 
 function run_node()
    local liveKey = ''
@@ -36,7 +37,6 @@ end
 
 function script_update(settings)
 	start_script_name = obs.obs_data_get_string(settings, "start_script_name")
-	end_script_name = obs.obs_data_get_string(settings, "end_script_name")
 end
 
 function script_description()
@@ -47,14 +47,25 @@ function script_properties()
 	props = obs.obs_properties_create()
 
 	obs.obs_properties_add_path(props, "start_script_name", "Start Stream", obs.OBS_PATH_FILE, "(*.exe *.bat *.sh);;(*.*)", NULL)
-	obs.obs_properties_add_path(props, "end_script_name", "End Stream", obs.OBS_PATH_FILE, "(*.exe *.bat *.sh);;(*.*)", NULL)
 		
 	return props
 end
 
 function script_defaults(settings)
-	obs.obs_data_set_default_string(settings, "start_script_name", "start_script")
-	obs.obs_data_set_default_string(settings, "end_script_name", "end_script")
+	-- From http://lua-users.org/lists/lua-l/2020-01/msg00345.html
+	local fullpath = debug.getinfo(1,"S").source:sub(2)
+	fullpath = io.popen("realpath '"..fullpath.."'", 'r'):read('a')
+	fullpath = fullpath:gsub('[\n\r]*$','')
+
+	local dirname, filename = fullpath:match('^(.*/)([^/]-)$')
+	dirname = dirname or ''
+	filename = filename or fullpath
+
+	obs.obs_data_set_default_string(
+		settings,
+		"start_script_name",
+		dirname.."../run.sh"
+	)
 end
 
 function script_load(settings)

@@ -2,4 +2,4 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-node ${SCRIPT_DIR}/scr/cmd.js
+node ${SCRIPT_DIR}/src/cmd.js
