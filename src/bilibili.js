@@ -10,9 +10,10 @@ function parseCookieString(cookieString) {
     const [name, value] = s.split("=");
     return {
       name,
-      value,
+      value: value.trim(),
       path: "/",
       domain: ".bilibili.com",
+      secure: true,
     }
   })
 }
@@ -31,10 +32,12 @@ function sleep(time) {
 
 async function fetchLiveKey() {
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
   });
   const context = await browser.newContext();
-  context.addCookies(parseCookieString(readCookieFile()));
+  const cookies = parseCookieString(readCookieFile())
+  // console.log(cookies);
+  context.addCookies(cookies);
 
   const page = await context.newPage();
   await page.goto('https://link.bilibili.com/p/center/index#/my-room/start-live');
@@ -54,8 +57,8 @@ async function fetchLiveKey() {
     if (first === true) {
       first = false;
       // click refresh button in case input value is not set yet
-      await page.locator('div.refresh img').click();
-      await sleep(200);
+      // await page.locator('div.refresh img').click();
+      await sleep(500);
       liveKey = await page.inputValue("div.live-code input");
       keyPromiseResoveFn(liveKey);
       firstPromiseResolve();
@@ -65,7 +68,7 @@ async function fetchLiveKey() {
   }
 
   async function liveIsOn() {
-    await page.locator(`button:has-text("关闭直播")`).waitFor();
+    await page.locator('button:has-text("关闭直播")').waitFor();
     await doneCb();
   }
   async function liveIsOff() {
